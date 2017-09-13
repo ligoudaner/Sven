@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ourslook.production.dao.SysRoleDao">
+
+	<select id="queryObject" resultType="com.ourslook.production.entity.SysRoleEntity">
+		select * from sys_role where role_id = #{value}
+	</select>
+	
+	<select id="queryList" resultType="com.ourslook.production.entity.SysRoleEntity">
+            select * from sys_role z 		
+          <where>
+			<if test="roleName != null and roleName.trim() != ''">
+				and role_name like CONCAT(CONCAT('%',#{roleName}),'%') 
+			</if>
+			<if test="createUserId != null">
+				and create_user_id = #{createUserId} 
+			</if>
+		</where>
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by ${sidx} ${order}
+			</when>
+			<otherwise>
+				order by role_id asc
+			</otherwise>
+		</choose>
+	     <if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+	<select id="queryTotal" resultType="int">
+		select count(*) from sys_role 
+		<where>
+			<if test="roleName != null and roleName.trim() != ''">
+				and role_name like CONCAT(CONCAT('%',#{roleName}),'%') 
+			</if>
+			<if test="createUserId != null">
+				and create_user_id = #{createUserId} 
+			</if>
+		</where>
+	</select>
+	
+	<insert id="save" parameterType="com.ourslook.production.entity.SysRoleEntity" useGeneratedKeys="true" keyProperty="roleId">
+		insert into sys_role
+		(
+			role_name, 
+			remark,
+			create_user_id,
+			create_time
+		)
+		values
+		(
+			#{roleName}, 
+			#{remark},
+			#{createUserId},
+			#{createTime}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="com.ourslook.production.entity.SysRoleEntity">
+		update sys_role 
+		<set> 
+			<if test="roleName != null">role_name = #{roleName}, </if>
+			<if test="remark != null">remark = #{remark}</if>
+		</set>
+		where role_id = #{roleId}
+	</update>
+	
+	<delete id="deleteBatch">
+		delete from sys_role 
+		<where>
+			<foreach item="roleId" collection="array" open="(" separator="or" close=")">
+				<![CDATA[role_id =#{roleId} ]]> 
+			</foreach>
+		</where>;
+		delete from sys_role_menu 
+		<where>
+			<foreach item="roleId" collection="array" open="(" separator="or" close=")">
+				 role_id=#{roleId}
+			</foreach>
+		</where>;
+		delete from sys_user_role 
+		<where>
+			<foreach item="roleId" collection="array" open="(" separator="or" close=")">
+				role_id=#{roleId}
+			</foreach>
+		</where>
+	</delete>
+	
+	<delete id="deleteBatch2">
+		delete from sys_role_menu 
+		<where>
+			<foreach item="roleId" collection="array" open="(" separator="or" close=")">
+				 role_id=#{roleId}
+			</foreach>
+		</where>
+	</delete>
+	
+	<delete id="deleteBatch3">
+		delete from sys_user_role 
+		<where>
+			<foreach item="roleId" collection="array" open="(" separator="or" close=")">
+				role_id=#{roleId}
+			</foreach>
+		</where>
+	</delete>
+	
+	<!-- 查询用户创建的角色ID列表 -->
+	<select id="queryRoleIdList" resultType="long">
+		select role_id from sys_role where create_user_id = #{createUserId} 
+	</select> 
+</mapper>
